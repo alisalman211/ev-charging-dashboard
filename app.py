@@ -28,7 +28,13 @@ st.title("EV Charging Station Location Analysis")
 # Filters
 city_options = ev_data['City'].dropna().unique()
 city = st.selectbox("Select a City", ["All"] + list(city_options))
-postal_code_options = ev_data['Postal Code'].dropna().unique()
+
+# Dynamically update postal code options based on selected city
+if city == "All":
+    postal_code_options = ev_data['Postal Code'].dropna().unique()
+else:
+    postal_code_options = ev_data[ev_data['City'] == city]['Postal Code'].dropna().unique()
+
 postal_code = st.selectbox("Select a Postal Code", ["All"] + [str(code) for code in postal_code_options])
 
 # Determine the filtered data and x-axis label
@@ -44,13 +50,18 @@ else:
 
 # Bar chart for EV concentration based on the selection
 ev_counts = filtered_data[x_axis].value_counts().head(10)
-plt.figure(figsize=(10, 5))
-ev_counts.plot(kind='bar', color='skyblue')
-plt.title(f"Top 10 {x_axis}s with Highest Concentration of EVs")
-plt.xlabel(x_axis)
-plt.ylabel("Number of EVs")
-plt.xticks(rotation=45)
-st.pyplot(plt)
+
+# Check if there are values to plot
+if not ev_counts.empty:
+    plt.figure(figsize=(10, 5))
+    ev_counts.plot(kind='bar', color='skyblue')
+    plt.title(f"Top 10 {x_axis}s with Highest Concentration of EVs")
+    plt.xlabel(x_axis)
+    plt.ylabel("Number of EVs")
+    plt.xticks(rotation=45)
+    st.pyplot(plt)
+else:
+    st.write("No data available for the selected filters.")
 
 # Heatmap based on the selection
 st.subheader(f"Heatmap of EV Locations in Selected {x_axis}")
